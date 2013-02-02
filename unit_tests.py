@@ -3,7 +3,12 @@ from scipy import linalg
 import pca
 
 def main():
-    print pca.pca(mat('[1,.5,2,1,2;4,3,5,6,1;.01,0,.02,0,0]'),2)
+    a = array([[1,2,3,4,5],[6,7,8,9,10],[0,0,0,0,0]])
+    print a
+    b = pca.pca(a,2)
+    print b
+    print "diff"
+    print a-b
 
 if __name__ == "__main__":
     main()
