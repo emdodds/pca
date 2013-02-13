@@ -1,8 +1,12 @@
-from numpy import *
+import numpy as np
+import scipy as sp
 from scipy import linalg
 
-#function to do pca on an array of vectors then reduce dimensionality
-def pca(vectors,dim):
+#function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
+def pca(vectors,dim,rowColumn):
+    if rowColumn == 'r':
+        vectors = vectors.transpose()
+
     centerVecs = vectors.copy()
     vectorsShape = vectors.shape
 #Mean of each row
@@ -12,23 +16,24 @@ def pca(vectors,dim):
         for j in range(vectorsShape[1]):
             centerVecs[i,j] = vectors[i,j]-meanVec[i]
 #Compute covariance matrix
-    covMat = dot(centerVecs,centerVecs.transpose())
+    covMat = np.dot(centerVecs,centerVecs.transpose())
 #Compute eigen info
     eigen = linalg.eigh(covMat)
+    eValues = eigen[0]
     eVectors = eigen[1]
+    idx = eValues.argsort()
+    eValues = eValues[idx]
+    eVectors = eVectors[:,idx]
 #Project back onto a reduced dimensionality basis
-    reducedDim = vectors.copy()
-    #for i in range(dim):
-        #reducedDim = reducedDim+dot(eVectors[:,(vectorsShape[1]-i-1)],dot(eVectors[:,(vectorsShape[1]-i-1)].transpose(),centerVecs))
-#Add mean    
-    reducedDim = reducedDim*0   
-    print reducedDim.shape
-    print array([eVectors[:,1]]).transpose().shape,((array([eVectors[:,1]]))).shape,centerVecs.shape
+    reducedDim = np.zeros(vectors.shape)
 
+    print sp.array([eVectors[:,1]]).T.shape,sp.array([eVectors[:,1]]).shape,centerVecs.shape
     for i in range(dim):
-        reducedDim = reducedDim+dot(array([eVectors[:,i]]).transpose(),dot(array([eVectors[:,i]]),centerVecs))
+        reducedDim = reducedDim+np.dot(sp.array([eVectors[:,-1-i]]).T,np.dot(sp.array([eVectors[:,-1-i]]),centerVecs))
+#Add mean
     for i in range(vectorsShape[0]):
         for j in range(vectorsShape[1]):
             reducedDim[i,j] += meanVec[i]
-                                                          
+    if rowColumn == 'r':
+        reducedDim = reducedDim.transpose()
     return reducedDim
