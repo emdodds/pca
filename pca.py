@@ -27,7 +27,6 @@ def pca(vectors,dim,rowColumn):
 #Project back onto a reduced dimensionality basis
     reducedDim = np.zeros(vectors.shape)
 
-    print sp.array([eVectors[:,1]]).T.shape,sp.array([eVectors[:,1]]).shape,centerVecs.shape
     for i in range(dim):
         reducedDim = reducedDim+np.dot(sp.array([eVectors[:,-1-i]]).T,np.dot(sp.array([eVectors[:,-1-i]]),centerVecs))
 #Add mean
