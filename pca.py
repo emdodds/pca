@@ -35,4 +35,4 @@ def pca(vectors,dim,rowColumn):
             reducedDim[i,j] += meanVec[i]
     if rowColumn == 'r':
         reducedDim = reducedDim.transpose()
-    return reducedDim
+    return (reducedDim,eValues,eVectors)
