@@ -33,12 +33,18 @@ def pca(vectors,dim,rowColumn):
         reducedDim = reducedDim.T
     return (reducedDim,eValues,eVectors,meanVec)
 
-def reconst(reducedDim,eVectors,meanVec):
-    fullDim = np.zeros((eVectors.shape[1],reducedDim.shape[1]))
-    for ii in xrange(reducedDim.shape[1]):
-        for jj in xrange(reducedDim.shape[0]):
-            fullDim[:,ii] += eVectors[:,-1-jj]*reducedDim[jj,ii]
-    for ii in xrange(reducedDim.shape[1]):
+def reconst(reducedDim,eVectors,meanVec,rowColumn):
+    if rowColumn == 'r':
+        reducedDim2 = reducedDim.T
+    else:
+        reducedDim2 = reducedDim
+    fullDim = np.zeros((eVectors.shape[1],reducedDim2.shape[1]))
+    for ii in xrange(reducedDim2.shape[1]):
+        for jj in xrange(reducedDim2.shape[0]):
+            fullDim[:,ii] += eVectors[:,-1-jj]*reducedDim2[jj,ii]
+    for ii in xrange(reducedDim2.shape[1]):
         fullDim[:,ii] += meanVec
+    if rowColumn == 'r':
+        fullDim = fullDim.T
     return fullDim
 
