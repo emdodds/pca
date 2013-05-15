@@ -39,6 +39,7 @@ def reconst(reducedDim,eVectors,meanVec,rowColumn):
     else:
         reducedDim2 = reducedDim
     fullDim = np.zeros((eVectors.shape[1],reducedDim2.shape[1]))
+    print fullDim.shape
     for ii in xrange(reducedDim2.shape[1]):
         for jj in xrange(reducedDim2.shape[0]):
             fullDim[:,ii] += eVectors[:,-1-jj]*reducedDim2[jj,ii]
