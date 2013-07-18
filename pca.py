@@ -3,11 +3,11 @@ import scipy as sp
 from scipy import linalg
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
-def pca(vectors,dim,rowColumn):
-    if rowColumn == 'r':
-        vectors2 = vectors.T
-    else:
+def pca(vectors,dim,rowColumn=None):
+    if rowColumn is None:
         vectors2 = vectors
+    elif rowColumn == 'r':
+        vectors2 = vectors.T
 
     centerVecs = np.zeros(vectors2.shape)
 #Mean of each row
@@ -28,7 +28,7 @@ def pca(vectors,dim,rowColumn):
 #Project back onto a reduced dimensionality basis
     reducedDim = np.array([np.dot(np.array([eVectors[:,-1-ii]]),centerVecs)[0] for ii in xrange(dim)])
 
-#Add mean
+#Tranpose back to original
     if rowColumn == 'r':
         reducedDim = reducedDim.T
     return (reducedDim,eValues,eVectors,meanVec)
