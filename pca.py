@@ -6,6 +6,9 @@ import sys
 def pca(vectors,dim,rowColumn=None):
     if rowColumn is None:
         vectors2 = vectors
+        print 'rowColumn flag not set; assuming column.'
+    elif rowColumn == 'c':
+        vectors2 = vectors
     elif rowColumn == 'r':
         vectors2 = vectors.T
     else:
