@@ -1,13 +1,10 @@
 import numpy as np
-from scipy import linalg
+cimport numpy as np
 import sys
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
-def pca(vectors,dim,rowColumn=None):
-    if rowColumn is None:
-        vectors2 = vectors
-        print 'rowColumn flag not set; assuming column.'
-    elif rowColumn == 'c':
+def pca(vectors,dim,rowColumn):
+    if rowColumn == 'c':
         vectors2 = vectors
     elif rowColumn == 'r':
         vectors2 = vectors.T
@@ -15,19 +12,17 @@ def pca(vectors,dim,rowColumn=None):
         print 'Malformed rowColumn flag.'
         sys.exit()
 
-    centerVecs = np.zeros(vectors2.shape)
+    centerVecs = np.zeros_like(vectors2)
 #Mean of each row
     meanVec = vectors2.mean(axis=1)
 #Subtract mean
-    for i in xrange(vectors2.shape[1]):
-        centerVecs[:,i] = vectors2[:,i]-meanVec
+    for ii in xrange(vectors2.shape[1]):
+        centerVecs[:,ii] = vectors2[:,ii]-meanVec
 #Compute covariance matrix
     covMat = np.dot(centerVecs,centerVecs.T)
 #Compute eigen info
-    eigen = linalg.eigh(covMat)
-    eValues = eigen[0]
-    eVectors = eigen[1]
-    idx = eValues.argsort()
+    eValues,eVectors = np.linalg.eigh(covMat)
+    idx = np.argsort(eValues)
     eValues = eValues[idx]
     eVectors = eVectors[:,idx]
 #Project back onto a reduced dimensionality basis
@@ -38,8 +33,8 @@ def pca(vectors,dim,rowColumn=None):
         reducedDim = reducedDim.T
     return (reducedDim,eValues,eVectors,meanVec)
 
-def reconst(reducedDim,eVectors,meanVec,rowColumn=None):
-    if rowColumn is None:
+def reconst(reducedDim,eVectors,meanVec,rowColumn):
+    if rowColumn == 'c':
         reducedDim2 = reducedDim
     elif rowColumn == 'r':
         reducedDim2 = reducedDim.T
