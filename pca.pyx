@@ -23,7 +23,8 @@ def pca(np.ndarray[DTYPE_t,ndim=2] vectors,int dim,str rowColumn):
      """
 
     cdef np.ndarray[DTYPE_t,ndim=2] vectors2,centerVecs,covMat,eVectors,reducedDim
-    cdef np.ndarray[DTYPE_t,ndim=1] meanVec,eValues,idx
+    cdef np.ndarray[DTYPE_t,ndim=1] meanVec,eValues
+    cdef np.ndarray[np.int_t,ndim=1] idx
     cdef int ii
     if rowColumn == 'c':
         vectors2 = vectors
@@ -54,7 +55,7 @@ def pca(np.ndarray[DTYPE_t,ndim=2] vectors,int dim,str rowColumn):
         reducedDim = reducedDim.T
     return (reducedDim,eValues,eVectors,meanVec)
 
-def reconst(np.ndarray[DTYPE_t,ndim=2] reducedDim,np.ndarray[DTYPE_t,ndim=2] eVectors,np.ndarray[DTYPE_t,ndim=2] meanVec,char rowColumn):
+def reconst(np.ndarray[DTYPE_t,ndim=2] reducedDim,np.ndarray[DTYPE_t,ndim=2] eVectors,np.ndarray[DTYPE_t,ndim=2] meanVec,str rowColumn):
     """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
     Args:
