@@ -1,5 +1,4 @@
 import numpy as np
-cimport numpy as np
 import sys
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
