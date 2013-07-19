@@ -5,7 +5,7 @@ DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
-def pca(np.ndarray[DTYPE_t,ndim=2] vectors,int dim,char * rowColumn):
+def pca(np.ndarray[DTYPE_t,ndim=2] vectors,int dim,str rowColumn):
     """Does principal component analysis on vectors and reduces dimensionality to dim.
 
     Args:
