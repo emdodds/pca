@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
 def pca(vectors,dim,rowColumn,whiten=None):
@@ -17,45 +18,43 @@ def pca(vectors,dim,rowColumn,whiten=None):
         meanVec: Average of original vectors.
 
      Raises:
+        ValueError: rowColum flag not understood.
      """
+    vectors2 = copy.deepcopy(vectors)
     if whiten is None:
         whiten = False
     if rowColumn == 'c':
-        vectors2 = vectors
+        pass
     elif rowColumn == 'r':
-        vectors2 = vectors.T
+        vectors2 = vectors2.T
     else:
         raise ValueError('Malformed rowColumn flag.')
 
-    centerVecs = np.zeros_like(vectors2)
 #Mean of each row
     meanVec = vectors2.mean(axis=1)
 #Subtract mean
-    for ii in xrange(vectors2.shape[1]):
-        centerVecs[:,ii] = vectors2[:,ii]-meanVec
+    centerVecs = vectors2-np.array([meanVec]).T
 #Compute covariance matrix
     covMat = np.dot(centerVecs,centerVecs.T)
 #Compute eigen info
     eValues,eVectors = np.linalg.eigh(covMat)
     idx = np.argsort(eValues)
-    eValues = eValues[idx]
-    eVectors = eVectors[:,idx]
-#Whiten data if applicable
-    whitenM = np.identity(covMat.shape[0])
-    deWhitenM = np.identity(covMat.shape[0])
-    if whiten == True:
-        whitenM = np.dot(np.diag(1/(np.sqrt(np.absolute(eValues))),eVecs.T)
-        deWhitenM = np.dot(eVecs,np.diag(np.sqrt(eValues)))
-        centerVecs = np.dot(whitenM,centerVecs)
+    eValues = eValues[idx][::-1]
+    eVectors = eVectors[:,idx][:,::-1]
 #Project onto reduced number of eigenvectors.
-    reducedDim = np.array([np.dot(np.array([eVectors[:,-1-ii]]),centerVecs)[0] for ii in xrange(dim)])
-
+    reducedDim = np.dot(eVectors.T[:dim],centerVecs)
+#Whiten data if applicable
+    whitenM = None
+    deWhitenM = None
+    if whiten:
+        seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
+        reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
 #Transpose back to original
     if rowColumn == 'r':
         reducedDim = reducedDim.T
     return (reducedDim,eValues,eVectors,meanVec)
 
-def reconst(reducedDim,eVectors,meanVec,rowColumn):
+def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
     """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
     Args:
@@ -68,20 +67,24 @@ def reconst(reducedDim,eVectors,meanVec,rowColumn):
         fullDim: Vectors in full dimensionality.
 
     Raises:
+       ValueError: rowColumn flag not understood.
     """
+    reducedDim2 = copy.deepcopy(reducedDim)
+    if whitened is None:
+        whitened = False
     if rowColumn == 'c':
-        reducedDim2 = reducedDim
+        pass
     elif rowColumn == 'r':
-        reducedDim2 = reducedDim.T
+        reducedDim2 = reducedDim2.T
     else:
-        print 'Malformed rowColumn flag.'
-        sys.exit()
-    fullDim = np.zeros((eVectors.shape[1],reducedDim2.shape[1]))
-    for ii in xrange(reducedDim2.shape[1]):
-        for jj in xrange(reducedDim2.shape[0]):
-            fullDim[:,ii] += eVectors[:,-1-jj]*reducedDim2[jj,ii]
-    for ii in xrange(reducedDim2.shape[1]):
-        fullDim[:,ii] += meanVec
+        raise ValueError('Malformed rowColumn flag.')
+
+    curDim = reducedDim2.shape[0]
+    if whitened:
+        seVM = np.diag(np.sqrt(np.absolute(eValues)))[:curDim,:curDim]
+        reducedDim2 = np.dot(seVM,reducedDim2)
+    fullDim = np.dot(eVectors[:,:curDim],reducedDim2)
+    fullDim += np.array([meanVec]).T
     if rowColumn == 'r':
         fullDim = fullDim.T
     return fullDim
