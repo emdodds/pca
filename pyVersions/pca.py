@@ -1,5 +1,4 @@
 import numpy as np
-import copy
 
 #function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
 def pca(vectors,dim,rowColumn,whiten=None):
@@ -20,7 +19,7 @@ def pca(vectors,dim,rowColumn,whiten=None):
      Raises:
         ValueError: rowColum flag not understood.
      """
-    vectors2 = copy.deepcopy(vectors)
+    vectors2 = 1.*vectors
     if whiten is None:
         whiten = False
     if rowColumn == 'c':
@@ -69,7 +68,7 @@ def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
     Raises:
        ValueError: rowColumn flag not understood.
     """
-    reducedDim2 = copy.deepcopy(reducedDim)
+    reducedDim2 = 1.*reducedDim
     if whitened is None:
         whitened = False
     if rowColumn == 'c':
