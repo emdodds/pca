@@ -19,20 +19,19 @@ def pca(vectors,dim,rowColumn,whiten=None):
      Raises:
         ValueError: rowColum flag not understood.
      """
-    vectors2 = 1.*vectors
     if whiten is None:
         whiten = False
     if rowColumn == 'c':
         pass
     elif rowColumn == 'r':
-        vectors2 = vectors2.T
+        vectors = vectors.T
     else:
         raise ValueError('Malformed rowColumn flag.')
 
 #Mean of each row
-    meanVec = vectors2.mean(axis=1)
+    meanVec = vectors.mean(axis=1)
 #Subtract mean
-    centerVecs = vectors2-np.array([meanVec]).T
+    centerVecs = vectors-np.array([meanVec]).T
 #Compute covariance matrix
     covMat = np.dot(centerVecs,centerVecs.T)
 #Compute eigen info
@@ -68,21 +67,20 @@ def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
     Raises:
        ValueError: rowColumn flag not understood.
     """
-    reducedDim2 = 1.*reducedDim
     if whitened is None:
         whitened = False
     if rowColumn == 'c':
         pass
     elif rowColumn == 'r':
-        reducedDim2 = reducedDim2.T
+        reducedDim = reducedDim.T
     else:
         raise ValueError('Malformed rowColumn flag.')
 
-    curDim = reducedDim2.shape[0]
+    curDim = reducedDim.shape[0]
     if whitened:
         seVM = np.diag(np.sqrt(np.absolute(eValues)))[:curDim,:curDim]
-        reducedDim2 = np.dot(seVM,reducedDim2)
-    fullDim = np.dot(eVectors[:,:curDim],reducedDim2)
+        reducedDim = np.dot(seVM,reducedDim2)
+    fullDim = np.dot(eVectors[:,:curDim],reducedDim)
     fullDim += np.array([meanVec]).T
     if rowColumn == 'r':
         fullDim = fullDim.T
