@@ -35,16 +35,19 @@ def pca(vectors,dim,rowColumn,whiten=None):
 #Compute covariance matrix
     covMat = np.dot(centerVecs,centerVecs.T)
 #Compute eigen info
+    print 'Calculating eigenvectors and eigenvalues'
     eValues,eVectors = np.linalg.eigh(covMat)
     idx = np.argsort(eValues)
     eValues = eValues[idx][::-1]
     eVectors = eVectors[:,idx][:,::-1]
 #Project onto reduced number of eigenvectors.
+    print 'Projecting onto reduced dimensionality basis'
     reducedDim = np.dot(eVectors.T[:dim],centerVecs)
 #Whiten data if applicable
     whitenM = None
     deWhitenM = None
     if whiten:
+        print 'Whitening'
         seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
         reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
 #Transpose back to original
@@ -78,8 +81,10 @@ def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
 
     curDim = reducedDim.shape[0]
     if whitened:
+        print 'Dewhitening'
         seVM = np.diag(np.sqrt(np.absolute(eValues)))[:curDim,:curDim]
-        reducedDim = np.dot(seVM,reducedDim2)
+        reducedDim = np.dot(seVM,reducedDim)
+    print 'Reconstructing data in full dimensionality basis'
     fullDim = np.dot(eVectors[:,:curDim],reducedDim)
     fullDim += np.array([meanVec]).T
     if rowColumn == 'r':
