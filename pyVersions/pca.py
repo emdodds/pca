@@ -81,10 +81,8 @@ def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
 
     curDim = reducedDim.shape[0]
     if whitened:
-        print 'Dewhitening'
         seVM = np.diag(np.sqrt(np.absolute(eValues)))[:curDim,:curDim]
         reducedDim = np.dot(seVM,reducedDim)
-    print 'Reconstructing data in full dimensionality basis'
     fullDim = np.dot(eVectors[:,:curDim],reducedDim)
     fullDim += np.array([meanVec]).T
     if rowColumn == 'r':
