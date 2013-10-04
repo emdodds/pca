@@ -75,14 +75,14 @@ def reduceDim(vectors,dim,eValues,eVectors,rowColumn,whiten=None):
      Raises:
         ValueError: rowColum flag not understood.
      """
-    if whiten is None:
-        whiten = False
-    if rowColumn == 'c':
-        pass
-    elif rowColumn == 'r':
-        vectors = vectors.T
-    else:
-        raise ValueError('Malformed rowColumn flag.')
+     if whiten is None:
+         whiten = False
+     if rowColumn == 'c':
+         pass
+     elif rowColumn == 'r':
+         vectors = vectors.T
+     else:
+         raise ValueError('Malformed rowColumn flag.')
 
 #Mean of each row
     meanVec = vectors.mean(axis=1)
