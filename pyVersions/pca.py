@@ -85,27 +85,27 @@ def reduceDim(vectors,dim,eValues,eVectors,rowColumn,whiten=None):
          raise ValueError('Malformed rowColumn flag.')
 
 #Mean of each row
-    meanVec = vectors.mean(axis=1)
+     meanVec = vectors.mean(axis=1)
 #Subtract mean
-    centerVecs = vectors-np.array([meanVec]).T
+     centerVecs = vectors-np.array([meanVec]).T
 
-    idx = np.argsort(eValues)
-    eValues = eValues[idx][::-1]
-    eVectors = eVectors[:,idx][:,::-1]
+     idx = np.argsort(eValues)
+     eValues = eValues[idx][::-1]
+     eVectors = eVectors[:,idx][:,::-1]
 #Project onto reduced number of eigenvectors.
-    print 'Projecting onto reduced dimensionality basis'
-    reducedDim = np.dot(eVectors.T[:dim],centerVecs)
+     print 'Projecting onto reduced dimensionality basis'
+     reducedDim = np.dot(eVectors.T[:dim],centerVecs)
 #Whiten data if applicable
-    whitenM = None
-    deWhitenM = None
-    if whiten:
-        print 'Whitening'
-        seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
-        reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
+     whitenM = None
+     deWhitenM = None
+     if whiten:
+         print 'Whitening'
+         seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
+         reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
 #Transpose back to original
-    if rowColumn == 'r':
-        reducedDim = reducedDim.T
-    return (reducedDim,eValues,eVectors,meanVec)
+     if rowColumn == 'r':
+         reducedDim = reducedDim.T
+     return (reducedDim,eValues,eVectors,meanVec)
 
 def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
     """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
