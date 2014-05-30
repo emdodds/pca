@@ -1,146 +1,155 @@
 import numpy as np
 
-#function to do pca on an array of vectors then reduce dimensionality. Always converts data into columns of data
-def pca(vectors,dim,rowColumn,whiten=None):
-    """Does principal component analysis on vectors and reduces dimensionality to dim.
+class PCA(object):
 
-    Args:
-        vectors: Data to do pca on.
-        dim: Dimensionality to reduce to.
-        rowColumn: Flag that specifies how data is formatted.
-        whiten: Flag that tell pca to whiten the data before return. Default is False
+    def __init__(self):
+        self.ready = False
 
-    Returns:
-        reduced: Data with rediced dimensions.
-        eValues: Eigenvalues.
-        eVectors: Eigenvectors.
-        meanVec: Average of original vectors.
+    def fit(self, data, row_col='r', dim=None, whiten=False):
+        """Learns a basis for PCA
 
-     Raises:
-        ValueError: rowColum flag not understood.
-     """
-    if whiten is None:
-        whiten = False
-    if rowColumn == 'c':
-        pass
-    elif rowColumn == 'r':
-        vectors = vectors.T
-    else:
-        raise ValueError('Malformed rowColumn flag.')
+        Args:
+            data: Data to do pca on.
+            dim: Dimensionality to reduce to.
+            rowColumn: Flag that specifies how data is formatted.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
 
-#Mean of each row
-    meanVec = vectors.mean(axis=1)
-#Subtract mean
-    centerVecs = vectors-np.array([meanVec]).T
-#Compute covariance matrix
-    covMat = np.dot(centerVecs,centerVecs.T)
-#Compute eigen info
-    print 'Calculating eigenvectors and eigenvalues'
-    eValues,eVectors = np.linalg.eigh(covMat)
-    idx = np.argsort(eValues)
-    eValues = eValues[idx][::-1]
-    eVectors = eVectors[:,idx][:,::-1]
-#Project onto reduced number of eigenvectors.
-    print 'Projecting onto reduced dimensionality basis'
-    reducedDim = np.dot(eVectors.T[:dim],centerVecs)
-#Whiten data if applicable
-    whitenM = None
-    deWhitenM = None
-    if whiten:
-        print 'Whitening'
-        seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
-        reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
-#Transpose back to original
-    if rowColumn == 'r':
-        reducedDim = reducedDim.T
-    return (reducedDim,eValues,eVectors,meanVec)
+        Returns:
+            reduced: Data with rediced dimensions.
+            eValues: Eigenvalues.
+            eVectors: Eigenvectors.
+            meanVec: Average of original vectors.
 
-def reduceDim(vectors,dim,eValues,eVectors,rowColumn,whiten=None):
-    """Projects vectors onto preexisting PCA basis and reduced dimensionality to dim.
+        Raises:
+           ValueError: rowColum flag not understood.
+        """
+        if row_col == 'c':
+            data = data.T[:]
+        elif row_col == 'r':
+            pass
+        else:
+            raise ValueError('Malformed rowColumn flag.')
+        if dim is None:
+            self.dim = data.shape[1]
+        else:
+            self.dim = dim
+        self.whiten = whiten
+    #Mean of each row
+        self.mean_vec = data.mean(0)
+    #Subtract mean
+        center_vecs = data-self.mean_vec[np.newaxis,:]
+    #Compute SVD
+        print 'Calculating SVD'
+        u,self.sValues,self.v = np.linalg.svd(center_vecs, full_matrices=1, compute_uv=1)
+        self.idx = np.argsort(sValues)
+        self.sValues = self.sValues[idx][::-1]
+        self.eVectors = self.v[self.idx][::-1]
+        self.ready = True
+        return
 
-    Args:
-        vectors: Data to do pca on.
-        dim: Dimensionality to reduce to.
-        eValues: Eigenvalues from PCA basis
-        eVectors: Eigenvectors, PCA basis
-        rowColumn: Flag that specifies how data is formatted.
-        whiten: Flag that tell pca to whiten the data before return. Default is False
+    def fit_transform(self, data, row_col='r', dim=None, whiten=False):
+        """Learns a basis for PCA and projects data onto it
 
-    Returns:
-        reduced: Data with rediced dimensions.
-        eValues: Eigenvalues.
-        eVectors: Eigenvectors.
-        meanVec: Average of original vectors.
+        Args:
+            data: Data to do pca on.
+            dim: Dimensionality to reduce to.
+            rowColumn: Flag that specifies how data is formatted.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
 
-    Raises:
-        ValueError: rowColum flag not understood.
-    """
-    if whiten is None:
-        whiten = False
-    if rowColumn == 'c':
-        pass
-    elif rowColumn == 'r':
-        vectors = vectors.T
-    else:
-        raise ValueError('Malformed rowColumn flag.')
+        Returns:
+            reduced: Data with rediced dimensions.
+            eValues: Eigenvalues.
+            eVectors: Eigenvectors.
+            meanVec: Average of original vectors.
 
-#Mean of each row
-    meanVec = vectors.mean(axis=1)
-#Subtract mean
-    centerVecs = vectors-np.array([meanVec]).T
+        Raises:
+           ValueError: rowColum flag not understood.
+        """
 
-    idx = np.argsort(eValues)
-    eValues = eValues[idx][::-1]
-    eVectors = eVectors[:,idx][:,::-1]
-#Project onto reduced number of eigenvectors.
-    print 'Projecting onto reduced dimensionality basis'
-    reducedDim = np.dot(eVectors.T[:dim],centerVecs)
-#Whiten data if applicable
-    whitenM = None
-    deWhitenM = None
-    if whiten:
-        print 'Whitening'
-        seVMI = np.diag(1/np.sqrt(np.absolute(eValues)))
-        reducedDim = np.dot(seVMI[:dim,:dim],reducedDim)
-#Transpose back to original
-    if rowColumn == 'r':
-        reducedDim = reducedDim.T
-    return (reducedDim,eValues,eVectors,meanVec)
+        self.fit(data, row_col=row_col, dim=dim, whiten=whiten)
+        return self.transform(data, row_col=row_col, dim=dim, whiten=whiten)
 
-def reconst(reducedDim,eValues,eVectors,meanVec,rowColumn,whitened=None):
-    """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
+    def transform(self, data, row_col='r', dim=None, whiten=None):
+        """Projects vectors onto preexisting PCA basis and reduced dimensionality to dim.
 
-    Args:
-        reducedDim: Vectors of reduced dimensionality.
-        eVectors: Original basis vectors.
-        meanVec: Mean of original vectors.
-        rowColumn: Flag that determines data format.
+        Args:
+            vectors: Data to do pca on.
+            dim: Dimensionality to reduce to.
+            eValues: Eigenvalues from PCA basis
+            eVectors: Eigenvectors, PCA basis
+            rowColumn: Flag that specifies how data is formatted.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
 
-    Returns:
-        fullDim: Vectors in full dimensionality.
+        Returns:
+            reduced: Data with rediced dimensions.
+            eValues: Eigenvalues.
+            eVectors: Eigenvectors.
+            meanVec: Average of original vectors.
 
-    Raises:
-       ValueError: rowColumn flag not understood.
-    """
-    if whitened is None:
-        whitened = False
-    if rowColumn == 'c':
-        pass
-    elif rowColumn == 'r':
-        reducedDim = reducedDim.T
-    else:
-        raise ValueError('Malformed rowColumn flag.')
+        Raises:
+            ValueError: rowColum flag not understood.
+        """
+        if not self.ready:
+            raise Exception('PCA model not yet fit with data')
+        if row_col == 'c':
+            data = data.T[:]
+        elif row_col == 'r':
+            pass
+        else:
+            raise ValueError('Malformed rowColumn flag.')
+        if dim is None:
+            self.dim = data.shape[1]
+        else:
+            self.dim = dim
+        if whiten is None:
+            whiten = self.whiten
 
-    idx = np.argsort(eValues)
-    eValues = eValues[idx][::-1]
-    eVectors = eVectors[:,idx][:,::-1]
-    curDim = reducedDim.shape[0]
-    if whitened:
-        seVM = np.diag(np.sqrt(np.absolute(eValues)))[:curDim,:curDim]
-        reducedDim = np.dot(seVM,reducedDim)
-    fullDim = np.dot(eVectors[:,:curDim],reducedDim)
-    fullDim += np.array([meanVec]).T
-    if rowColumn == 'r':
-        fullDim = fullDim.T
-    return fullDim
+    #Subtract mean
+        center_vecs = data-np.array([self.mean_vec]).T
+    #Project onto reduced number of eigenvectors.
+        print 'Projecting onto reduced dimensionality basis'
+        reduced_dim = data.dot(self.eVectors.T)
+    #Whiten data if applicable
+        if whiten:
+            print 'Whitening'
+            wm = np.diag(1./self.sValues)
+            reduced_dim = reduced_dim.dot(wm[:dim,:dim])
+    #Transpose back to original
+        if row_col == 'r':
+            reduced_dim = reduced_dim.T
+        return reduced_dim
+
+    def inv_transform(data, row_col='r', whiten=None):
+        """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
+
+        Args:
+            reducedDim: Vectors of reduced dimensionality.
+            eVectors: Original basis vectors.
+            meanVec: Mean of original vectors.
+            rowColumn: Flag that determines data format.
+
+        Returns:
+            fullDim: Vectors in full dimensionality.
+
+        Raises:
+           ValueError: rowColumn flag not understood.
+        """
+        if whiten is None:
+            whiten = self.whiten
+        if rowColumn == 'c':
+            data = data.T[:]
+        elif rowColumn == 'r':
+            pass
+        else:
+            raise ValueError('Malformed rowColumn flag.')
+
+        cur_dim = data.shape[1]
+        if whiten:
+            iwm = np.diag(self.sValues)[:cur_dim,:cur_dim]
+            data = data.(iwm)
+        data = data.dot(self.eVectors[:curDim])
+        data += self.mean_vec[np.newaxis,:]
+        if rowColumn == 'r':
+            data = data
+        return data
 
