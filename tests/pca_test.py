@@ -1,5 +1,5 @@
 import numpy as np
-from pca import PCA
+from pca.pca import PCA
 import copy
 
 class pca_test():
@@ -26,8 +26,6 @@ class pca_test():
         p = PCA(dim=2)
         new = p.fit_transform(self.data)
         new = p.inv_transform(new)
-        print self.data
-        print new
         assert np.allclose(new,self.data)
         return
 
