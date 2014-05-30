@@ -23,8 +23,8 @@ class pca_test():
         return
 
     def dimreduce_test(self):
-        p = PCA()
-        new = p.fit_transform(self.data,dim=2)
+        p = PCA(dim=2)
+        new = p.fit_transform(self.data)
         new = p.inv_transform(new)
         print self.data
         print new
@@ -33,8 +33,8 @@ class pca_test():
 
     def whiten_test(self):
         data = self.data+self.rng.rand(*self.data.shape)
-        p = PCA()
-        new = p.fit_transform(data, whiten=True)
+        p = PCA(whiten=True)
+        new = p.fit_transform(data)
         cov = new.T.dot(new)
         assert np.allclose(cov,np.eye(data.shape[1]))
         return
