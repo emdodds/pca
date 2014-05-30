@@ -1,8 +1,8 @@
 pca
 ===
 
-Function for doing pca in numpy/scipy.
+Class for doing Principal Component Analysis on a set of data.
 
-Takes array of data vectors, dimensionality to reduce to, and row/column flag as input.
+Can optionally whiten or reduce dimensionality of original or additional data. Inverse transformations are also implemented.
 
-Outputs array of reduced dimension data vectors, eigenvalues, and eigenvectors.
+The object can be pickled for inverse transforming later.
