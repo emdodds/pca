@@ -106,11 +106,9 @@ class PCA(object):
     #Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
     #Project onto reduced number of eigenvectors.
-        print 'Projecting onto reduced dimensionality basis'
-        reduced_dim = data.dot(self.eVectors.T)
+        reduced_dim = center_vecs.dot(self.eVectors.T)
     #Whiten data if applicable
         if whiten:
-            print 'Whitening'
             wm = np.diag(1./self.sValues)
             reduced_dim = reduced_dim.dot(wm[:dim,:dim])
     #Transpose back to original
