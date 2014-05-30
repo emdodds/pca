@@ -20,6 +20,7 @@ class pca_test():
         assert np.allclose(self.data,data_init)
         p.inv_transform(self.data)
         assert np.allclose(self.data,data_init)
+        return
 
     def dimreduce_test(self):
         p = PCA()
@@ -28,4 +29,14 @@ class pca_test():
         print self.data
         print new
         assert np.allclose(new,self.data)
+        return
+
+    def whiten_test(self):
+        data = self.data+self.rng.rand(*self.data.shape)
+        p = PCA()
+        new = p.fit_transform(data, whiten=True)
+        cov = new.T.dot(new)
+        assert np.allclose(cov,np.eye(data.shape[1]))
+        return
+
 
