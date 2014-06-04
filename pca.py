@@ -38,7 +38,7 @@ class PCA(object):
     #Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
     #Compute SVD
-        u,self.sValues,v = np.linalg.svd(center_vecs, full_matrices=1, compute_uv=1)
+        u,self.sValues,v = np.linalg.svd(center_vecs, full_matrices=0, compute_uv=1)
         idx = np.argsort(self.sValues)
         self.sValues = self.sValues[idx][::-1]
         self.eVectors = v[idx][::-1]
