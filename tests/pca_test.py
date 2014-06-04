@@ -12,6 +12,8 @@ class pca_test():
         return
     
     def change_test(self):
+        # Check to see if functions touch original data
+        # They should not
         data_init = copy.deepcopy(self.data)
         p = PCA()
         p.fit(self.data)
@@ -22,7 +24,18 @@ class pca_test():
         assert np.allclose(self.data,data_init)
         return
 
+    def transform_test(self):
+        # Check to see if data can 
+        # be transformed and inverse transformed exactly
+        p = PCA()
+        new = p.fit_transform(self.data)
+        new = p.inv_transform(new)
+        assert np.allclose(new,self.data)
+        return
+
     def dimreduce_test(self):
+        # Check to see if intrinsically 2D data
+        # can be transformed to 2D and back exactly
         p = PCA(dim=2)
         new = p.fit_transform(self.data)
         new = p.inv_transform(new)
@@ -35,6 +48,13 @@ class pca_test():
         new = p.fit_transform(data)
         cov = new.T.dot(new)
         assert np.allclose(cov,np.eye(data.shape[1]))
+        return
+
+    def ready_test(self):
+        p = PCA(dim=2)
+        assert p.ready == False
+        new = p.fit(self.data)
+        assert p.ready == True
         return
 
 
