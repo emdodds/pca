@@ -2,10 +2,11 @@ import numpy as np
 
 class PCA(object):
 
-    def __init__(self, dim = None, whiten = False):
+    def __init__(self, dim = None, whiten = False, eps= 1.e-8):
         self.dim = dim
         self.whiten = whiten
         self.ready = False
+        self.eps = eps
 
     def fit(self, data, row_col='r'):
         """Learns a basis for PCA
@@ -43,7 +44,6 @@ class PCA(object):
         self.sValues = self.sValues[idx][::-1]
         self.eVectors = v[idx][::-1]
         self.ready = True
-        return
 
     def fit_transform(self, data, row_col='r'):
         """Learns a basis for PCA and projects data onto it
@@ -102,7 +102,7 @@ class PCA(object):
         reduced_dim = center_vecs.dot(self.eVectors[:self.dim].T)
     #Whiten data if applicable
         if self.whiten:
-            wm = np.diag(1./self.sValues)
+            wm = np.diag(1./np.maximum(self.sValues, self.eps))
             reduced_dim = reduced_dim.dot(wm[:self.dim,:self.dim])
     #Transpose back to original
         if row_col == 'c':
@@ -135,7 +135,7 @@ class PCA(object):
         if cur_dim != self.dim:
             raise ValueError('data dimension is different than expected')
         if self.whiten:
-            iwm = np.diag(self.sValues)[:cur_dim,:cur_dim]
+            iwm = np.diag(np.maximum(self.sValues, self.eps))[:cur_dim,:cur_dim]
             full_data = full_data.dot(iwm)
         full_data = full_data.dot(self.eVectors[:cur_dim])
         full_data += self.mean_vec[np.newaxis,:]
