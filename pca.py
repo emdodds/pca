@@ -131,7 +131,7 @@ class PCA(object):
         else:
             raise ValueError('Malformed row_col flag.')
 
-        cur_dim = data.shape[1]
+        cur_dim = full_data.shape[1]
         if cur_dim != self.dim:
             raise ValueError('data dimension is different than expected')
         if self.whiten:
@@ -143,3 +143,71 @@ class PCA(object):
             full_data = full_data.T
         return full_data
 
+    def transform_zca(self, data, row_col='r'):
+        """Projects vectors onto preexisting PCA basis 
+        and reduced dimensionality to dim. Reproject back
+        into data space.
+
+        Args:
+            data: Data to do zca on.
+            row_col: Flag that specifies how data is formatted.
+
+        Returns:
+            reduced_dim: Data with rediced dimensions.
+
+        Raises:
+            ValueError: rowColum flag not understood.
+        """
+        if not self.ready:
+            raise Exception('PCA model not yet fit with data')
+        if row_col == 'c':
+            data = data.T[:]
+        elif row_col == 'r':
+            pass
+        else:
+            raise ValueError('Malformed row_col flag.')
+
+    #Subtract mean
+        center_vecs = data-self.mean_vec[np.newaxis,:]
+    #Project onto reduced number of eigenvectors.
+        reduced_dim = center_vecs.dot(self.eVectors[:self.dim].T)
+    #Whiten data if applicable
+        if self.whiten:
+            wm = np.diag(1./np.maximum(self.sValues, self.eps))
+            reduced_dim = reduced_dim.dot(wm[:self.dim,:self.dim])
+    #Project back to original space
+        full_dim = reduced_dim.dot(self.eVectors[:self.dim])
+    #Transpose back to original
+        if row_col == 'c':
+            full_dim = full_dim.T
+        return full_dim
+    
+    def inv_transform_zca(self, data, row_col='r'):
+        """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
+
+        Args:
+            data: Vectors of reduced dimensionality.
+            row_col: Flag that determines data format.
+
+        Returns:
+            full_data: Vectors in full dimensionality.
+
+        Raises:
+           ValueError: row_col flag not understood.
+        """
+        if row_col == 'c':
+            full_data = data.T[:]
+        elif row_col == 'r':
+            full_data = data[:]
+        else:
+            raise ValueError('Malformed row_col flag.')
+
+        full_data = full_data.dot(self.eVectors[:self.dim].T)
+        if self.whiten:
+            iwm = np.diag(np.maximum(self.sValues, self.eps))[:self.dim,:self.dim]
+            full_data = full_data.dot(iwm)
+        full_data = full_data.dot(self.eVectors[:self.dim])
+        full_data += self.mean_vec[np.newaxis,:]
+        if row_col == 'c':
+            full_data = full_data.T
+        return full_data
