@@ -3,6 +3,13 @@ import numpy as np
 class PCA(object):
 
     def __init__(self, dim = None, whiten = False, eps= 1.e-8):
+        """PCA object that can be fit to and transform data.
+
+        Args:
+            dim: Dimensionality to reduce to.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
+        """
         self.dim = dim
         self.whiten = whiten
         self.ready = False
@@ -79,10 +86,7 @@ class PCA(object):
             whiten: Flag that tell pca to whiten the data before return. Default is False
 
         Returns:
-            reduced: Data with rediced dimensions.
-            eValues: Eigenvalues.
-            eVectors: Eigenvectors.
-            meanVec: Average of original vectors.
+            reduced_dim: Data with rediced dimensions.
 
         Raises:
             ValueError: rowColum flag not understood.
@@ -124,6 +128,8 @@ class PCA(object):
         Raises:
            ValueError: row_col flag not understood.
         """
+        if not self.ready:
+            raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
             full_data = data.T[:]
         elif row_col == 'r':
@@ -153,7 +159,7 @@ class PCA(object):
             row_col: Flag that specifies how data is formatted.
 
         Returns:
-            reduced_dim: Data with rediced dimensions.
+            full_dim: Data with reduced dimensions.
 
         Raises:
             ValueError: rowColum flag not understood.
@@ -195,6 +201,8 @@ class PCA(object):
         Raises:
            ValueError: row_col flag not understood.
         """
+        if not self.ready:
+            raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
             full_data = data.T[:]
         elif row_col == 'r':
