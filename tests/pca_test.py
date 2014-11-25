@@ -51,3 +51,12 @@ class pca_test():
         new = p.fit(self.data)
         assert p.ready == True
 
+    def transform_zca_test(self):
+        # Check to see if data can 
+        # be transformed and inverse transformed exactly
+        p = PCA(eps=0.)
+        data = self.rng.randn(100,10)
+        p.fit(data)
+        new = p.transform_zca(data)
+        old = p.inv_transform_zca(new)
+        assert np.allclose(old,data)

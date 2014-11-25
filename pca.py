@@ -177,6 +177,7 @@ class PCA(object):
         center_vecs = data-self.mean_vec[np.newaxis,:]
     #Project onto reduced number of eigenvectors.
         reduced_dim = center_vecs.dot(self.eVectors[:self.dim].T)
+
     #Whiten data if applicable
         if self.whiten:
             wm = np.diag(1./np.maximum(self.sValues, self.eps))
