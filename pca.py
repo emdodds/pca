@@ -20,18 +20,10 @@ class PCA(object):
 
         Args:
             data: Data to do pca on.
-            dim: Dimensionality to reduce to.
             row_col: Flag that specifies how data is formatted.
-            whiten: Flag that tell pca to whiten the data before return. Default is False
-
-        Returns:
-            reduced: Data with rediced dimensions.
-            eValues: Eigenvalues.
-            eVectors: Eigenvectors.
-            meanVec: Average of original vectors.
 
         Raises:
-           ValueError: rowColum flag not understood.
+           ValueError: row_col flag not understood.
         """
         if row_col == 'c':
             data = data.T[:]
@@ -41,55 +33,54 @@ class PCA(object):
             raise ValueError('Malformed row_col flag.')
         if self.dim is None:
             self.dim = data.shape[1]
-    #Mean of each row
+        else:
+            assert self.dim <= data.shape[1]
+    # Mean of each row
         self.mean_vec = data.mean(0)
-    #Subtract mean
+    # Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
-    #Compute SVD
+    # Compute SVD
         if center_vecs.shape[0] > center_vecs.shape[1]:
             full_matrices = 0
         else:
             full_matrices = 1
-        u,self.sValues,v = np.linalg.svd(center_vecs,
-                                         full_matrices=full_matrices,
-                                         compute_uv=1)
+        u, self.sValues, v = np.linalg.svd(center_vecs,
+                                           full_matrices=full_matrices,
+                                           compute_uv=1)
         idx = np.argsort(self.sValues)
         self.sValues = self.sValues[idx][::-1]
         self.eVectors = v[idx][::-1]
         self.ready = True
 
-    def fit_transform(self, data, row_col='r'):
+    def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1.e-8):
         """Learns a basis for PCA and projects data onto it
 
         Args:
             data: Data to do pca on.
-            dim: Dimensionality to reduce to.
             row_col: Flag that specifies how data is formatted.
+            dim: Dimensionality to reduce to.
             whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
 
         Returns:
             reduced: Data with rediced dimensions.
-            eValues: Eigenvalues.
-            eVectors: Eigenvectors.
-            meanVec: Average of original vectors.
 
         Raises:
            ValueError: rowColum flag not understood.
         """
 
         self.fit(data, row_col=row_col)
-        return self.transform(data, row_col=row_col)
+        return self.transform(data, row_col=row_col, dim=dim, whiten=whiten, eps=eps)
 
-    def transform(self, data, row_col='r'):
+    def transform(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Projects vectors onto preexisting PCA basis and reduced dimensionality to dim.
 
         Args:
-            vectors: Data to do pca on.
-            dim: Dimensionality to reduce to.
-            eValues: Eigenvalues from PCA basis
-            eVectors: Eigenvectors, PCA basis
+            data: Data to do pca on.
             row_col: Flag that specifies how data is formatted.
+            dim: Dimensionality to reduce to.
             whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
 
         Returns:
             reduced_dim: Data with rediced dimensions.
@@ -97,6 +88,9 @@ class PCA(object):
         Raises:
             ValueError: rowColum flag not understood.
         """
+        dim = dim or self.dim
+        whiten = whiten or self.whiten
+        eps = eps or self.eps
         if not self.ready:
             raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
@@ -109,24 +103,25 @@ class PCA(object):
     #Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
     #Project onto reduced number of eigenvectors.
-        reduced_dim = center_vecs.dot(self.eVectors[:self.dim].T)
+        reduced_dim = center_vecs.dot(self.eVectors[:dim].T)
     #Whiten data if applicable
-        if self.whiten:
-            wm = np.diag(1./np.maximum(self.sValues, self.eps))
-            reduced_dim = reduced_dim.dot(wm[:self.dim,:self.dim])
+        if whiten:
+            wm = np.diag(1./np.maximum(self.sValues, eps))
+            reduced_dim = reduced_dim.dot(wm[:dim,:dim])
     #Transpose back to original
         if row_col == 'c':
             reduced_dim = reduced_dim.T
         return reduced_dim
 
-    def inv_transform(self, data, row_col='r'):
+    def inv_transform(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
         Args:
-            reducedDim: Vectors of reduced dimensionality.
-            eVectors: Original basis vectors.
-            meanVec: Mean of original vectors.
-            row_col: Flag that determines data format.
+            data: Data to do pca on.
+            row_col: Flag that specifies how data is formatted.
+            dim: Dimensionality to reduce to.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
 
         Returns:
             fullDim: Vectors in full dimensionality.
@@ -134,6 +129,9 @@ class PCA(object):
         Raises:
            ValueError: row_col flag not understood.
         """
+        dim = dim or self.dim
+        whiten = whiten or self.whiten
+        eps = eps or self.eps
         if not self.ready:
             raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
@@ -146,8 +144,8 @@ class PCA(object):
         cur_dim = full_data.shape[1]
         if cur_dim != self.dim:
             raise ValueError('data dimension is different than expected')
-        if self.whiten:
-            iwm = np.diag(np.maximum(self.sValues, self.eps))[:cur_dim,:cur_dim]
+        if whiten:
+            iwm = np.diag(np.maximum(self.sValues, eps))[:cur_dim,:cur_dim]
             full_data = full_data.dot(iwm)
         full_data = full_data.dot(self.eVectors[:cur_dim])
         full_data += self.mean_vec[np.newaxis,:]
@@ -155,7 +153,7 @@ class PCA(object):
             full_data = full_data.T
         return full_data
 
-    def transform_zca(self, data, row_col='r'):
+    def transform_zca(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Projects vectors onto preexisting PCA basis 
         and reduced dimensionality to dim. Reproject back
         into data space.
@@ -163,6 +161,9 @@ class PCA(object):
         Args:
             data: Data to do zca on.
             row_col: Flag that specifies how data is formatted.
+            dim: Dimensionality to reduce to.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
 
         Returns:
             full_dim: Data with reduced dimensions.
@@ -170,6 +171,9 @@ class PCA(object):
         Raises:
             ValueError: rowColum flag not understood.
         """
+        dim = dim or self.dim
+        whiten = whiten or self.whiten
+        eps = eps or self.eps
         if not self.ready:
             raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
@@ -182,25 +186,28 @@ class PCA(object):
     #Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
     #Project onto reduced number of eigenvectors.
-        reduced_dim = center_vecs.dot(self.eVectors[:self.dim].T)
+        reduced_dim = center_vecs.dot(self.eVectors[:dim].T)
 
     #Whiten data if applicable
-        if self.whiten:
-            wm = np.diag(1./np.maximum(self.sValues, self.eps))
-            reduced_dim = reduced_dim.dot(wm[:self.dim,:self.dim])
+        if whiten:
+            wm = np.diag(1./np.maximum(self.sValues, eps))
+            reduced_dim = reduced_dim.dot(wm[:dim,:dim])
     #Project back to original space
-        full_dim = reduced_dim.dot(self.eVectors[:self.dim])
+        full_dim = reduced_dim.dot(self.eVectors[:dim])
     #Transpose back to original
         if row_col == 'c':
             full_dim = full_dim.T
         return full_dim
     
-    def inv_transform_zca(self, data, row_col='r'):
+    def inv_transform_zca(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
         Args:
-            data: Vectors of reduced dimensionality.
-            row_col: Flag that determines data format.
+            data: Data to do zca on.
+            row_col: Flag that specifies how data is formatted.
+            dim: Dimensionality to reduce to.
+            whiten: Flag that tell pca to whiten the data before return. Default is False
+            eps: Smallest allowed singular value
 
         Returns:
             full_data: Vectors in full dimensionality.
@@ -208,6 +215,9 @@ class PCA(object):
         Raises:
            ValueError: row_col flag not understood.
         """
+        dim = dim or self.dim
+        whiten = whiten or self.whiten
+        eps = eps or self.eps
         if not self.ready:
             raise Exception('PCA model not yet fit with data')
         if row_col == 'c':
@@ -217,11 +227,11 @@ class PCA(object):
         else:
             raise ValueError('Malformed row_col flag.')
 
-        full_data = full_data.dot(self.eVectors[:self.dim].T)
-        if self.whiten:
-            iwm = np.diag(np.maximum(self.sValues, self.eps))[:self.dim,:self.dim]
+        full_data = full_data.dot(self.eVectors[:dim].T)
+        if whiten:
+            iwm = np.diag(np.maximum(self.sValues, eps))[:dim,:dim]
             full_data = full_data.dot(iwm)
-        full_data = full_data.dot(self.eVectors[:self.dim])
+        full_data = full_data.dot(self.eVectors[:dim])
         full_data += self.mean_vec[np.newaxis,:]
         if row_col == 'c':
             full_data = full_data.T

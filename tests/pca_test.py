@@ -13,7 +13,7 @@ class pca_test():
     def change_test(self):
         # Check to see if functions touch original data
         # They should not
-        data_init = copy.deepcopy(self.data)
+        data_init = np.copy(self.data)
         p = PCA(eps=0.)
         p.fit(self.data)
         assert np.allclose(self.data,data_init)
