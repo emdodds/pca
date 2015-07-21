@@ -1,6 +1,7 @@
 import numpy as np
 
-class PCA(object):
+
+class PCA:
 
     def __init__(self, dim = None, whiten = False, eps= 1.e-8):
         """PCA object that can be fit to and transform data.
@@ -44,6 +45,7 @@ class PCA(object):
             full_matrices = 0
         else:
             full_matrices = 1
+
         u, self.sValues, v = np.linalg.svd(center_vecs,
                                            full_matrices=full_matrices,
                                            compute_uv=1)
@@ -113,7 +115,7 @@ class PCA(object):
             reduced_dim = reduced_dim.T
         return reduced_dim
 
-    def inv_transform(self, data, row_col='r', dim=None, whiten=None, eps=None):
+    def inverse_transform(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
         Args:
@@ -199,7 +201,7 @@ class PCA(object):
             full_dim = full_dim.T
         return full_dim
     
-    def inv_transform_zca(self, data, row_col='r', dim=None, whiten=None, eps=None):
+    def inverse_transform_zca(self, data, row_col='r', dim=None, whiten=None, eps=None):
         """Takes vectors from reduced dimensionality basis and returns them to full dimensionality basis.
 
         Args:
