@@ -1,3 +1,9 @@
+"""
+PCA object that can be fit to and transform data. 
+Written by Jesse Livezey.
+Last edited by Eric Dodds on 17 September, 2015.
+"""
+
 import numpy as np
 
 
@@ -32,6 +38,7 @@ class PCA:
             pass
         else:
             raise ValueError('Malformed row_col flag.')
+        self.nsamples = data.shape[0]
         if self.dim is None:
             self.dim = data.shape[1]
         else:
@@ -81,7 +88,7 @@ class PCA:
             data: Data to do pca on.
             row_col: Flag that specifies how data is formatted.
             dim: Dimensionality to reduce to.
-            whiten: Flag that tell pca to whiten the data before return. Default is False
+            whiten: Flag that tells pca to whiten the data before return. Default is False
             eps: Smallest allowed singular value
 
         Returns:
@@ -143,9 +150,12 @@ class PCA:
         else:
             raise ValueError('Malformed row_col flag.')
 
+        if len(full_data.shape) < 2:
+            full_data = full_data[np.newaxis,:] # a single vector has been input
+        
         cur_dim = full_data.shape[1]
         if cur_dim != self.dim:
-            raise ValueError('data dimension is different than expected')
+            raise ValueError('Data dimension is different than expected')
         if whiten:
             iwm = np.diag(np.maximum(self.sValues, eps))[:cur_dim,:cur_dim]
             full_data = full_data.dot(iwm)
@@ -238,3 +248,11 @@ class PCA:
         if row_col == 'c':
             full_data = full_data.T
         return full_data
+
+    def explained_variance(self, dim = None):
+        """Returns the fraction of the variance in the data to which the model was fit
+        that is explained by the components retained."""
+        if not self.ready:
+            raise Exception('PCA model not yet fit with data')
+        dim = dim or self.dim
+        return np.sum(self.sValues[:dim]**2)/np.sum(self.sValues**2)
