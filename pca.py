@@ -52,16 +52,15 @@ class PCA:
     # Compute SVD
         if blocks > 0:
             self.sValues, v = self._block_fit(center_vecs, blocks)
-        
-        
-        if center_vecs.shape[0] > center_vecs.shape[1]:
-            full_matrices = 0
-        else:
-            full_matrices = 1
-
-        _, self.sValues, v = scipy.linalg.svd(center_vecs,
-                                           full_matrices=full_matrices,
-                                           compute_uv=1)
+        else:  
+            if center_vecs.shape[0] > center_vecs.shape[1]:
+                full_matrices = 0
+            else:
+                full_matrices = 1
+    
+            _, self.sValues, v = scipy.linalg.svd(center_vecs,
+                                               full_matrices=full_matrices,
+                                               compute_uv=1)
         idx = np.argsort(self.sValues)
         self.sValues = self.sValues[idx][::-1]
         self.eVectors = v[idx][::-1]
@@ -106,7 +105,7 @@ class PCA:
         self.fit(data, row_col=row_col)
         return self.transform(data, row_col=row_col, dim=dim, whiten=whiten, eps=eps)
 
-    def transform(self, data, row_col='r', dim=None, whiten=None, eps=None):
+    def transform(self, data, row_col='r', dim=None, whiten=None, eps=None, blocks=-1):
         """Projects vectors onto preexisting PCA basis and reduced dimensionality to dim.
 
         Args:
