@@ -1,15 +1,16 @@
 """
 PCA object that can be fit to and transform data. 
 Written by Jesse Livezey.
-Last edited by Eric Dodds on 17 September, 2015.
+Block functionality added by Eric Dodds.
 """
 
 import numpy as np
+import scipy
 
 
 class PCA:
 
-    def __init__(self, dim = None, whiten = False, eps= 1.e-8):
+    def __init__(self, dim = None, whiten = False, eps= 1e-8):
         """PCA object that can be fit to and transform data.
 
         Args:
@@ -22,12 +23,13 @@ class PCA:
         self.ready = False
         self.eps = eps
 
-    def fit(self, data, row_col='r'):
+    def fit(self, data, row_col='r', blocks = -1):
         """Learns a basis for PCA
 
         Args:
             data: Data to do pca on.
             row_col: Flag that specifies how data is formatted.
+            blocks : Size of blocks to break data into. By default, all one block
 
         Raises:
            ValueError: row_col flag not understood.
@@ -48,20 +50,43 @@ class PCA:
     # Subtract mean
         center_vecs = data-self.mean_vec[np.newaxis,:]
     # Compute SVD
+        if blocks > 0:
+            self.sValues, v = self._block_fit(center_vecs, blocks)
+        
+        
         if center_vecs.shape[0] > center_vecs.shape[1]:
             full_matrices = 0
         else:
             full_matrices = 1
 
-        u, self.sValues, v = np.linalg.svd(center_vecs,
+        _, self.sValues, v = scipy.linalg.svd(center_vecs,
                                            full_matrices=full_matrices,
                                            compute_uv=1)
         idx = np.argsort(self.sValues)
         self.sValues = self.sValues[idx][::-1]
         self.eVectors = v[idx][::-1]
         self.ready = True
+        
+    def _block_fit(self, vecs, blocks):
+        """
+        Learns a basis for PCA using eigenvalue decomposition of the covariance
+        matrix, which is computed from blocks of data. This may be needed when 
+        using a lot of data, for memory reasons.
+        
+        Args:
+            vecs: centered data
+            blocks: number of data vectors per block
+        """
+        data_dim = vecs.shape[1]
+        cov = np.zeros([data_dim, data_dim])
+        nblocks = int(np.ceil(self.nsamples / blocks))
+        for ind in range(nblocks):
+            X = vecs[blocks*ind:blocks*(ind+1)]
+            cov += X.T.dot(X)
+        eigvals, eigvecs = scipy.linalg.eigh(cov)
+        return np.sqrt(eigvals), eigvecs
 
-    def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1.e-8):
+    def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1e-8):
         """Learns a basis for PCA and projects data onto it
 
         Args:
