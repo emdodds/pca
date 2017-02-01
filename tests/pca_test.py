@@ -81,4 +81,6 @@ class pca_test():
         svals2 = p2.sValues
         svals2 /= np.max(svals2)
         assert np.allclose(svals, svals2) , (svals, svals2)
+        for vec1, vec2 in zip(p.eVectors, p2.eVectors):
+            assert np.allclose(vec1, vec2) or np.allclose(vec1,- vec2)
         

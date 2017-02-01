@@ -86,7 +86,7 @@ class PCA:
         if not np.all(eigvals>0):
             print('Found a negative eigenvalue of covariance matrix, most negative value ' ,np.min(eigvals))
             eigvals = np.abs(eigvals)
-        return np.sqrt(eigvals), eigvecs
+        return np.sqrt(eigvals), eigvecs.T
 
     def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1e-8):
         """Learns a basis for PCA and projects data onto it
