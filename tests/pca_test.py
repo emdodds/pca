@@ -1,6 +1,5 @@
 import numpy as np
 from pca.pca import PCA
-import copy
 
 class pca_test():
 
@@ -19,7 +18,7 @@ class pca_test():
         assert np.allclose(self.data,data_init)
         p.fit_transform(self.data)
         assert np.allclose(self.data,data_init)
-        p.inv_transform(self.data)
+        p.inverse_transform(self.data)
         assert np.allclose(self.data,data_init)
 
     def transform_test(self):
@@ -27,7 +26,7 @@ class pca_test():
         # be transformed and inverse transformed exactly
         p = PCA(eps=0.)
         new = p.fit_transform(self.data)
-        new = p.inv_transform(new)
+        new = p.inverse_transform(new)
         assert np.allclose(new,self.data)
 
     def dimreduce_test(self):
@@ -35,7 +34,7 @@ class pca_test():
         # can be transformed to 2D and back exactly
         p = PCA(dim=2, eps=0.)
         new = p.fit_transform(self.data)
-        new = p.inv_transform(new)
+        new = p.inverse_transform(new)
         assert np.allclose(new,self.data)
 
     def whiten_test(self):
@@ -48,7 +47,7 @@ class pca_test():
     def ready_test(self):
         p = PCA(dim=2, eps=0.)
         assert p.ready == False
-        new = p.fit(self.data)
+        p.fit(self.data)
         assert p.ready == True
 
     def transform_zca_test(self):
@@ -58,7 +57,7 @@ class pca_test():
         data = self.rng.randn(100,10)
         p.fit(data)
         new = p.transform_zca(data)
-        old = p.inv_transform_zca(new)
+        old = p.inverse_transform_zca(new)
         assert np.allclose(old,data)
 
     def transform_zca_whiten_test(self):
@@ -68,5 +67,18 @@ class pca_test():
         data = self.rng.randn(100,10)
         p.fit(data)
         new = p.transform_zca(data)
-        old = p.inv_transform_zca(new)
+        old = p.inverse_transform_zca(new)
         assert np.allclose(old,data)
+        
+    def block_fit_test(self):
+        """Check that fit by blocks works."""
+        p = PCA(eps=0.)
+        p.fit(self.data, blocks=3)
+        p2 = PCA(eps=0.)
+        p2.fit(self.data)
+        svals = p.sValues
+        svals /= np.max(svals)
+        svals2 = p2.sValues
+        svals2 /= np.max(svals2)
+        assert np.allclose(svals, svals2) , (svals, svals2)
+        

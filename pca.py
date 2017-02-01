@@ -5,7 +5,6 @@ Block functionality added by Eric Dodds.
 """
 
 import numpy as np
-import scipy
 
 
 class PCA:
@@ -58,7 +57,7 @@ class PCA:
             else:
                 full_matrices = 1
     
-            _, self.sValues, v = scipy.linalg.svd(center_vecs,
+            _, self.sValues, v = np.linalg.svd(center_vecs,
                                                full_matrices=full_matrices,
                                                compute_uv=1)
         idx = np.argsort(self.sValues)
@@ -82,7 +81,11 @@ class PCA:
         for ind in range(nblocks):
             X = vecs[blocks*ind:blocks*(ind+1)]
             cov += X.T.dot(X)
-        eigvals, eigvecs = scipy.linalg.eigh(cov)
+        cov /= self.nsamples
+        eigvals, eigvecs = np.linalg.eigh(cov)
+        if not np.all(eigvals>0):
+            print('Found a negative eigenvalue of covariance matrix, most negative value ' ,np.min(eigvals))
+            eigvals = np.abs(eigvals)
         return np.sqrt(eigvals), eigvecs
 
     def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1e-8):
