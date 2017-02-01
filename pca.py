@@ -81,7 +81,6 @@ class PCA:
         for ind in range(nblocks):
             X = vecs[blocks*ind:blocks*(ind+1)]
             cov += X.T.dot(X)
-        cov /= self.nsamples
         eigvals, eigvecs = np.linalg.eigh(cov)
         if not np.all(eigvals>0):
             print('Found a negative eigenvalue of covariance matrix, most negative value ' ,np.min(eigvals))

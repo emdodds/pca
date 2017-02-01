@@ -83,4 +83,22 @@ class pca_test():
         assert np.allclose(svals, svals2) , (svals, svals2)
         for vec1, vec2 in zip(p.eVectors, p2.eVectors):
             assert np.allclose(vec1, vec2) or np.allclose(vec1,- vec2)
+            
+    def block_fit_whiten_test(self):
+        """Check that block fit method whitens properly."""
+        data = self.data+self.rng.rand(*self.data.shape)
+        p = PCA(whiten=True, eps=0.)
+        p.fit(data, blocks=3)
+        new = p.transform(data)
+        cov = new.T.dot(new)
+        assert np.allclose(cov,np.eye(data.shape[1])), cov
+        
+    def block_fit_dimreduce_test(self):
+        # Check to see if intrinsically 2D data
+        # can be transformed to 2D and back exactly
+        p = PCA(dim=2, eps=0.)
+        p.fit(self.data, blocks=3)
+        new = p.transform(self.data)
+        new = p.inverse_transform(new)
+        assert np.allclose(new,self.data)
         
