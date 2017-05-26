@@ -22,7 +22,7 @@ class PCA:
         self.ready = False
         self.eps = eps
 
-    def fit(self, data, row_col='r', blocks = -1):
+    def fit(self, data, row_col='r', blocks=-1):
         """Learns a basis for PCA
 
         Args:
@@ -87,7 +87,8 @@ class PCA:
             eigvals = np.abs(eigvals)
         return np.sqrt(eigvals), eigvecs.T
 
-    def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1e-8):
+    def fit_transform(self, data, row_col='r', dim=None, whiten=False, eps=1e-8,
+                      blocks=-1):
         """Learns a basis for PCA and projects data onto it
 
         Args:
@@ -96,6 +97,7 @@ class PCA:
             dim: Dimensionality to reduce to.
             whiten: Flag that tell pca to whiten the data before return. Default is False
             eps: Smallest allowed singular value
+            blocks: Size of blocks to break data into. By default, all one block
 
         Returns:
             reduced: Data with rediced dimensions.
@@ -105,7 +107,8 @@ class PCA:
         """
 
         self.fit(data, row_col=row_col)
-        return self.transform(data, row_col=row_col, dim=dim, whiten=whiten, eps=eps)
+        return self.transform(data, row_col=row_col, dim=dim,
+                              whiten=whiten, eps=eps, blocks=blocks)
 
     def transform(self, data, row_col='r', dim=None, whiten=None, eps=None, blocks=-1):
         """Projects vectors onto preexisting PCA basis and reduced dimensionality to dim.
