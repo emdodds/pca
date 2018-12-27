@@ -168,7 +168,8 @@ class PCA:
            ValueError: row_col flag not understood.
         """
         dim = dim or self.dim
-        whiten = whiten or self.whiten
+        if whiten is None:
+            whiten = self.whiten
         eps = eps or self.eps
         if not self.ready:
             raise Exception('PCA model not yet fit with data')
